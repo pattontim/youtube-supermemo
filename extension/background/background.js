@@ -23,7 +23,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         //TODO check if sender is youtube.com
         if(sender.url.includes("youtube.com")) {
             //getAtData to localhost content script
-            fetchSuperMemoTimelineCommentsFromLocal(request)
+            fetchFromLocal(request)
                 .then(sendResponse)
                 .catch(e => {
                     console.error(e)
@@ -34,7 +34,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     } 
 });
 
-async function fetchSuperMemoTimelineCommentsFromLocal(request){
+async function fetchFromLocal(request){
     return new Promise((resolve) => {
         chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
             let activeLocalTab = tabs.filter(tab => tab.url.includes("localhost"))[0];

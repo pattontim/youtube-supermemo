@@ -35,7 +35,8 @@
 
     "web_accessible_resources": [
         "background/youtubei.js",
-        "yt_new.htm"
+        "yt_new.htm",
+        "icons/icon16.png"
     ],
 
     "background": {

@@ -7,6 +7,7 @@ main()
 onLocationHrefChange(() => {
     removeTimelineBar()
     main()
+    //TODO remove UI button and pane
 })
 
 async function waitForVideoDuration() {
@@ -86,6 +87,8 @@ function main() {
                 }
                 showTimelineComments([startTLC, stopTLC])
             })
+            createYoutubeSettingsButton();
+            createYouTubeSettingsUIPane();
         })
     })
 }
@@ -190,7 +193,7 @@ function enableYouTubePIPButton() {
     }
 }
 
-function createYoutubeStopButton() {
+function createYoutubeSettingsButton() {
     //add a new "Start/Sto" button to the left of the subtitle button on the youtube player
     const button = document.createElement('button')
     button.classList.add('ytp-button')
@@ -201,20 +204,85 @@ function createYoutubeStopButton() {
     icon.classList.add('ytp-supermemo-button-icon')
 
     const iconImage = document.createElement('img')
-    iconImage.src = chrome.runtime.getURL('icons/stop.png')
+    iconImage.src = chrome.runtime.getURL('icons/icon16.png')
     iconImage.classList.add('ytp-supermemo-button-icon')
 
     icon.appendChild(iconImage)
     button.appendChild(icon)
 
     button.addEventListener('click', () => {
-        chrome.runtime.sendMessage({type: 'stop'})
-    })
+        //toggle existing ytp settings menu
+        let settingsDiv = document.getElementById('ytp-supermemo-settings-pane')
+        if (settingsDiv) {
+            //settingsDiv.style.display = settingsDiv.style.display === 'none' ? '' : 'none'
+            if(settingsDiv.style.display === 'none'){
+                settingsDiv.style.display = ''
+                //send msg to localhost window parent iframe to pause the video
+                let pauseMessage = {type: 'pausePlayer'}
+                window.parent.postMessage(JSON.stringify(pauseMessage), 'http://localhost:8000')
 
+                //activate the extract feature on the host
+            }  else {
+                settingsDiv.style.display = 'none'
+                //send msg to localhost to resume the video
+                let resumeMessage = {type: 'playPlayer'}
+                window.parent.postMessage(JSON.stringify(resumeMessage), 'http://localhost:8000')
+            }
+        } else {
+            //create new ytp settings menu
+            // settingsDiv = document.createElement('div')
+            // settingsDiv.classList.add('ytp-settings-menu')
+            // settingsDiv.style.display = ''
+            // const settingsPane = createYouTubeSettingsUIPane()
+            // settingsDiv.appendChild(settingsPane)
+        }
+    })
+    
     const buttonContainer = document.querySelector('.ytp-right-controls')
     buttonContainer.insertBefore(button, buttonContainer.firstChild)
 
     return button
+}
+
+function createYouTubeSettingsUIPane(){
+    //craft another ytp-popup which when shown simply shows the textt "hello world"
+    //this is the similar to the ytp-popup that is shown when you click the settings button
+    const settingsPane = document.createElement('div')
+    settingsPane.classList.add('ytp-popup')
+    settingsPane.classList.add('ytp-settings-menu')
+    settingsPane.style.display = ''
+    settingsPane.style.width = '251px'
+    settingsPane.style.height = '137px'
+    settingsPane.id = 'ytp-supermemo-settings-pane'
+
+    const ytpPanel = document.createElement('div')
+    ytpPanel.classList.add('ytp-panel')
+
+    const ytpPanelMenu = document.createElement('div')
+    ytpPanelMenu.classList.add('ytp-panel-menu')
+
+    const ytpPanelMenuItem = document.createElement('div')
+    ytpPanelMenuItem.classList.add('ytp-menuitem')
+
+    const ytpPanelMenuItemLabel = document.createElement('div')
+    ytpPanelMenuItemLabel.classList.add('ytp-menuitem-label')
+    ytpPanelMenuItemLabel.innerHTML = 'hello world'
+
+    const ytpPanelMenuItemContent = document.createElement('div')
+    ytpPanelMenuItemContent.classList.add('ytp-menuitem-content')
+
+    ytpPanelMenuItem.appendChild(ytpPanelMenuItemLabel)
+    ytpPanelMenuItem.appendChild(ytpPanelMenuItemContent)
+    ytpPanelMenu.appendChild(ytpPanelMenuItem)
+    ytpPanel.appendChild(ytpPanelMenu)
+    settingsPane.appendChild(ytpPanel)
+
+    //in html5-video-player, add this ytp-popup after
+    let innerPlayer = document.getElementById('movie_player')
+    innerPlayer.appendChild(settingsPane);
+
+    return settingsPane
+    //in the html5-video-player, 
 }
 
 function showComment(timelineComment) {
