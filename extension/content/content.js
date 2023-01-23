@@ -21,20 +21,28 @@ async function waitForVideoDuration() {
     })
 }
 
-async function injectHTML(file, removeScripts = false) {
-    console.log('injecting html from file: ' + file)
-    const html = await fetch(/*chrome.runtime.getURL(file)*/file).then(async r => {
-        fulldoc  = await r.text()
-        newdoc = new DOMParser().parseFromString(fulldoc, 'text/html')
-        if (removeScripts){
-            while (newdoc.body.querySelector('script')){
-                newdoc.body.querySelector('script').remove()
-            }
+function processHTMLNode(html, removeScripts = false, idPrefix = '') {
+    newdoc = new DOMParser().parseFromString(html, 'text/html')
+    if (removeScripts){
+        while (newdoc.querySelector('script')){
+            newdoc.querySelector('script').remove()
         }
-        body = newdoc.body        
-        return body
-    })
-    document.body.insertAdjacentElement('beforeend', body)
+    }
+    if(idPrefix != ''){
+        //get all elems with id and add yt- prefix
+        newdoc.body.querySelectorAll('[id]').forEach(elem => {
+            elem.id = idPrefix + "-" + elem.id
+        })        
+    }
+    return newdoc
+}
+
+async function getRemoteHTMLNode(file) {
+    return new Promise((resolve) => {
+        chrome.runtime.sendMessage({type: 'getHTML', data: file}, async (html) => {
+            resolve(html)
+        }
+    )})
 }
 
 function main() {
@@ -87,8 +95,15 @@ function main() {
                 }
                 showTimelineComments([startTLC, stopTLC])
             })
-            createYoutubeSettingsButton();
-            createYouTubeSettingsUIPane();
+
+            if(window.location != window.parent.location){
+                getRemoteHTMLNode('yt_new.htm').then(html => {
+                    inputHTMLBody = processHTMLNode(html, true, 'yt');
+                    document.body.insertAdjacentElement('beforeend', inputHTMLBody.body)
+                    createYoutubeSettingsButton();
+                    createYouTubeSettingsUIPane();
+                })
+            }
         })
     })
 }
@@ -270,7 +285,12 @@ function createYouTubeSettingsUIPane(){
 
     const ytpPanelMenuItemContent = document.createElement('div')
     ytpPanelMenuItemContent.classList.add('ytp-menuitem-content')
+    
+    const ytpPanelMenuItemContentDiv = document.createElement('div')
+    let extrSelect = document.getElementById("extracts") || document.getElementById("yt-extracts")
+    ytpPanelMenuItemContentDiv.appendChild(extrSelect)
 
+    ytpPanelMenuItemContent.append(ytpPanelMenuItemContentDiv)
     ytpPanelMenuItem.appendChild(ytpPanelMenuItemLabel)
     ytpPanelMenuItem.appendChild(ytpPanelMenuItemContent)
     ytpPanelMenu.appendChild(ytpPanelMenuItem)

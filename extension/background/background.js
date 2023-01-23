@@ -23,7 +23,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         //TODO check if sender is youtube.com
         if(sender.url.includes("youtube.com")) {
             //getAtData to localhost content script
-            fetchFromLocal(request)
+            requestFromLocal(request)
                 .then(sendResponse)
                 .catch(e => {
                     console.error(e)
@@ -31,10 +31,33 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             )
             return true
         }
+    } else if(request.type == 'getHTML'){
+        //TODO check if sender is localhost
+        if(sender.url.includes("localhost")) {
+            getHTML(request.data)
+                .then(sendResponse)
+                .catch(e => {
+                    console.error(e)
+                }
+            )
+            return true
+        }    
     } 
 });
 
-async function fetchFromLocal(request){
+async function getHTML(path){
+    return new Promise((resolve) => {
+        let extPath = chrome.runtime.getURL(path)
+        fetch(extPath)
+            .then(response => response.text())
+            .then(html => {
+                resolve(html)
+            }
+        )
+    })
+}
+
+async function requestFromLocal(request){
     return new Promise((resolve) => {
         chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
             let activeLocalTab = tabs.filter(tab => tab.url.includes("localhost"))[0];
