@@ -28,7 +28,7 @@
         {
             "matches": ["https://www.youtube.com/*", "https://www.youtube-nocookie.com/embed/*", "http://localhost:8000/*"],
             "all_frames": true,
-            "js": ["content/content.js"],
+            "js": ["content/sync.js", "content/content.js"],
             "css": ["content/content.css"]
         }
     ],

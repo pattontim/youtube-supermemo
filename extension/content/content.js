@@ -1,5 +1,10 @@
 const COMMENT_BORDER_SIZE = 2
 const COMMENT_MARGIN = 8
+const YUI_LIB = 'http://localhost:8000/scripts/container-min.js'
+const SYNC_LIB = 'http://localhost:8000/sync.js'
+const ACCEPTED_ORIGINS = ['https://www.youtube.com', 'http://localhost:8000']
+
+firstRun = true
 
 main()
 
@@ -37,6 +42,7 @@ function processHTMLNode(html, removeScripts = false, idPrefix = '') {
     return newdoc
 }
 
+// if in manifest.json
 async function getRemoteHTMLNode(file) {
     return new Promise((resolve) => {
         chrome.runtime.sendMessage({type: 'getHTML', data: file}, async (html) => {
@@ -51,30 +57,23 @@ function main() {
     script.src = 'https://unpkg.com/react-player/dist/ReactPlayer.standalone.js';
     document.head.appendChild(script);*/
 
+    //TODO test on youtube.com
     if(window.location == window.parent.location){
-        //debugger;
-        window.addEventListener("message", function(event) {
-            //permit all messages from localhost and youtube.com
-            if (event.origin != "http://localhost:8000" || event.origin != "https://www.youtube.com") {
-                return; 
+        if(!window.location.href.includes('youtube.com')){
+            if(firstRun){
+                initLocalhost()
             }
-            debugger;
-                
-          }, false);
-        chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-            if (request.type == 'getAtData') {
-                getAtData()
-                    .then(sendResponse)
-                    .catch(e => {
-                        console.error(e)
-                    }
-                )
+        } else {
+            if(firstRun){
+                initYouTubeParent()
             }
-        });
-        // TODO use this
-        //injectHTML('./yt_new.htm', true);
-        return;
+        }
+    } else if (window.location != window.parent.location && window.location.href.includes('youtube.com')) {
+        if(firstRun){
+            initYouTube()
+        }
     }
+    firstRun = false
 
     //TODO event listener for video loaded
     waitForVideoDuration().then(() => {
@@ -206,6 +205,36 @@ function enableYouTubePIPButton() {
     if (button) {
         button.style.display = ''
     }
+}
+
+
+
+function initYouTube(){
+    registerProxyHandler(ACCEPTED_ORIGINS)
+}
+
+function initYouTubeParent(){
+
+}
+
+function initLocalhost(){
+    window.addEventListener("message", function(event) {
+        if (event.origin != "http://localhost:8000" || event.origin != "https://www.youtube.com") {
+            return; 
+        }
+        debugger;
+            
+        }, false);
+    chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+        if (request.type == 'getAtData') {
+            getAtData()
+                .then(sendResponse)
+                .catch(e => {
+                    console.error(e)
+                }
+            )
+        }
+    });
 }
 
 function createYoutubeSettingsButton() {
