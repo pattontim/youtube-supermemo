@@ -288,15 +288,40 @@ function createYoutubeSettingsButton() {
     return button
 }
 
+// function feedCurrentExtract(e = undefined){
+//     //send msg to localhost window parent iframe to pause the video
+//     let pauseMessage = {type: 'feedCurrentExtract'}
+//     window.parent.postMessage(JSON.stringify(pauseMessage), 'http://localhost:8000')
+// }
+
+function createMenuItem(label) {
+    const ytpPanelMenuItem = document.createElement('div')
+    ytpPanelMenuItem.classList.add('ytp-menuitem')
+
+    const ytpPanelMenuItemLabel = document.createElement('div')
+    ytpPanelMenuItemLabel.classList.add('ytp-menuitem-label')
+    ytpPanelMenuItemLabel.innerHTML = label
+
+    const ytpPanelMenuItemContent = document.createElement('div')
+    ytpPanelMenuItemContent.classList.add('ytp-menuitem-content')
+    
+    const ytpPanelMenuItemContentDiv = document.createElement('div')
+    ytpPanelMenuItemContentDiv.classList.add('ytp-menuitem-content-div')
+
+    ytpPanelMenuItemContent.append(ytpPanelMenuItemContentDiv)
+    ytpPanelMenuItem.appendChild(ytpPanelMenuItemLabel)
+    ytpPanelMenuItem.appendChild(ytpPanelMenuItemContent)
+
+    return ytpPanelMenuItem
+}
+
 function createYouTubeSettingsUIPane(){
-    //craft another ytp-popup which when shown simply shows the textt "hello world"
-    //this is the similar to the ytp-popup that is shown when you click the settings button
     const settingsPane = document.createElement('div')
     settingsPane.classList.add('ytp-popup')
     settingsPane.classList.add('ytp-settings-menu')
     settingsPane.style.display = ''
-    settingsPane.style.width = '251px'
-    settingsPane.style.height = '137px'
+    settingsPane.style.width = '600px'
+    settingsPane.style.height = '150px'
     settingsPane.id = 'ytp-supermemo-settings-pane'
 
     const ytpPanel = document.createElement('div')
@@ -305,24 +330,77 @@ function createYouTubeSettingsUIPane(){
     const ytpPanelMenu = document.createElement('div')
     ytpPanelMenu.classList.add('ytp-panel-menu')
 
-    const ytpPanelMenuItem = document.createElement('div')
-    ytpPanelMenuItem.classList.add('ytp-menuitem')
+let elements = [
+{id: "mark", onclick: function() {setAt('resume', 0, true);}},
+{id: "resume", onclick: function() {goTo('resume');}},
+{id: "resumevideoat", dblclick: function() {resetAt('resume');}, 
+onfocus: function() {this.select();}, 
+onchange: function() {this.value = convertDuration2HHMMSS(convertHHMMSS2Duration(this.value));}, 
+onclick: function() {setAt('resume', 0, true);}, onscroll: function() {console.log('scroll');}},
+{id: "restoreResumeAt", onclick: function() {resetAt('resume');}},
+{id: "start", onclick: function() {setAt('start', 0, true);}},
+{id: "goToStart", onclick: function() {goTo('start');}},
+{id: "startvideoat", dblclick: function() {resetAt('start');this.select();}, 
+onfocus: function() {this.select();}, 
+onchange: function() {this.value = convertDuration2HHMMSS(convertHHMMSS2Duration(this.value));var that = this;imposeBoundaries(0, that);}, 
+onclick: function() {setAt('start', 0, true);this.select();}},
+{id: "restoreStartAt", onclick: function() {resetAt('start');}},
+{id: "restoreStopAt", onclick: function() {resetAt('stop');}},
+{id: "stopvideoat", dblclick: function() {resetAt('stop');}, 
+onfocus: function() {this.select();}, 
+onchange: function() {this.value = convertDuration2HHMMSS(convertHHMMSS2Duration(this.value));var that = this;imposeBoundaries(0, that);}, 
+onclick: function() {setAt('stop', 0, true);this.select();}},
+{id: "goToStop", onclick: function() {goTo('stop');}},
+{id: "stop", onclick: function() {setAt('stop', 0, true);}},
+{id: "test", onclick: function() {testExtract();}},
+{id: "reset", onclick: function() {resetExtract();}},
+{id: "extract", onclick: function() {addExtract(0);}},
+{id: "extracts", onchange: function(){ feedCurrentExtract(); }, onclick: function(){ feedCurrentExtract(); }},
+{id: "removeCurrentExtract", onclick: function(){ removeCurrentExtract(); }},
+{id: "back", onclick: function(){ prevElement(); }},
+{id: "learn", onclick: function(){ beginLearning(); }},
+{id: "rep", onclick: function(){ nextRep(); }},
+{id: "fwd", onclick: function(){ nextElement(); }},
+{id: "dismiss", onclick: function(){ dismissElement(); }},
+{id: "extractm5", onclick: function(){ addExtract(-5); }},
+{id: "extract5", onclick: function(){ addExtract(5); }},
+{id: "rewindResume", onclick: function(){ move('resume', 'rewind'); }},
+{id: "rewindStart", onclick: function(){ move('start', 'rewind'); }},
+{id: "rewindStop", onclick: function(){ move('stop', 'rewind'); }},
+{id: "forwardResume", onclick: function(){ move('resume', 'forward'); }},
+{id: "forwardStart", onclick: function(){ move('start', 'forward'); }},
+{id: "forwardStop", onclick: function(){ move('stop', 'forward'); }}
+];
 
-    const ytpPanelMenuItemLabel = document.createElement('div')
-    ytpPanelMenuItemLabel.classList.add('ytp-menuitem-label')
-    ytpPanelMenuItemLabel.innerHTML = 'hello world'
+    for (var i = 0; i < elements.length; i++) {
+        var element = document.getElementById(elements[i].id) || document.getElementById("yt-" + elements[i].id);
+        if (elements[i].onclick) element.onclick = elements[i].onclick;
+        if (elements[i].dblclick) element.ondblclick = elements[i].dblclick;
+        if (elements[i].onchange) element.onchange = elements[i].onchange;
+        if (elements[i].onfocus) element.onfocus = elements[i].onfocus;
+        if (elements[i].onscroll) element.onscroll = elements[i].onscroll;
+        if (elements[i].onclick) element.onclick = elements[i].onclick;
+    }
 
-    const ytpPanelMenuItemContent = document.createElement('div')
-    ytpPanelMenuItemContent.classList.add('ytp-menuitem-content')
-    
-    const ytpPanelMenuItemContentDiv = document.createElement('div')
-    let extrSelect = document.getElementById("extracts") || document.getElementById("yt-extracts")
-    ytpPanelMenuItemContentDiv.appendChild(extrSelect)
+    let firstGroup = document.getElementsByClassName("ctrlGrp firstCtrlGrp")[0]
+    let secondGroup = document.getElementsByClassName("ctrlGrp secondCtrlGrp")[0]
 
-    ytpPanelMenuItemContent.append(ytpPanelMenuItemContentDiv)
-    ytpPanelMenuItem.appendChild(ytpPanelMenuItemLabel)
-    ytpPanelMenuItem.appendChild(ytpPanelMenuItemContent)
-    ytpPanelMenu.appendChild(ytpPanelMenuItem)
+    // let firstGroupDirect = firstGroup.children[0].children[0]
+    // let secondGroupDirect = secondGroup.children[0].children[0]
+
+    //loop through second group and redefine all handlers as is
+    let ytpExtractPanelMenuItem = createMenuItem('Extracts')
+    let ytpMarkerPanelMenuItem = createMenuItem('Marker')
+    let ytpClipPanelMenuItem = createMenuItem('Clip')
+
+    ytpExtractPanelMenuItem.querySelector('.ytp-menuitem-content-div').appendChild(secondGroup.children[1])
+    ytpMarkerPanelMenuItem.querySelector('.ytp-menuitem-content-div').appendChild(firstGroup.children[0])
+    //append is move
+    ytpClipPanelMenuItem.querySelector('.ytp-menuitem-content-div').appendChild(firstGroup.children[0])
+
+    ytpPanelMenu.appendChild(ytpExtractPanelMenuItem)
+    ytpPanelMenu.appendChild(ytpMarkerPanelMenuItem)
+    ytpPanelMenu.appendChild(ytpClipPanelMenuItem)
     ytpPanel.appendChild(ytpPanelMenu)
     settingsPane.appendChild(ytpPanel)
 
