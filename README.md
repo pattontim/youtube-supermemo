@@ -1,3 +1,5 @@
+# Project Archived! Replaced by https://github.com/pattontim/supermemo.js
+
 # SuperMemo YouTube
 Web extension that shows and adds clipping functionality to the YouTube player to carry out [incremental video](https://help.supermemo.org/wiki/Incremental_video) functionality. Available soon for Firefox and Chrome
 
